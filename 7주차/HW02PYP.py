@@ -18,3 +18,4 @@ if number % 2 == 0 and number % 3 == 0:
     print(f'{number}은 2와 3(으)로 나누어집니다.')
 else:
     print(f'{number}은 2와 3(으)로 나누어지지 않습니다.')
+
