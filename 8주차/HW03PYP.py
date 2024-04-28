@@ -17,7 +17,7 @@
 # fahrenheit = (9/5) * cel + 32
 
 # def cel2fah(temp):
-#     return (9/5) * cel + 32
+#     return (9/5) * temp + 32
 
 # for cel in range(0, 51, 10):
 #     fah = cel2fah(cel)
@@ -29,12 +29,12 @@
 # 이 함수를 재귀함수를 사용하지 말고, for 문을 사용하여 작성하여라. 
 # 이 함수를 이용하여 factorial(5), factorial(7), factorial(10)의 값을 출력하는 출력문을 구현하여라. 
 
-def factorial(n):
-    result = 1
-    for i in range(1, n + 1):
-        result *= i
-    return result
+# def factorial(n):
+#     result = 1
+#     for i in range(1, n + 1):
+#         result *= i
+#     return result
 
-print(f'factorail(5) : {factorial(5)}')
-print(f'factorail(7) : {factorial(7)}')
-print(f'factorail(10) : {factorial(10)}')
+# print(f'factorail(5) : {factorial(5)}')
+# print(f'factorail(7) : {factorial(7)}')
+# print(f'factorail(10) : {factorial(10)}')

@@ -30,7 +30,9 @@
 
 # print(f"가장 길이가 긴 문자열 : {maximum}")
 
-# fruit_list = [fruit for fruit in fruit_list if len(fruit) != max_length]
+# for i in reversed(range(len(fruit_list))):
+#     if len(fruit_list[i]) == max_length:
+#         del fruit_list[i]
 
 # print(f"fruit_list = {fruit_list}")
 
@@ -75,6 +77,11 @@
 #     else :
 #         print('입력 오류가 발생했습니다')
 # print('사전 프로그램을 종료합니다.')
+
+
+# 8-6. 8.6 튜플을 요소로 가지는 student_tuple 리스트가 다음과 같이 있다. 
+# 이 리스트의 요소가 되는 튜플은 (학번, 이름, 전화번호)로 이루어져 있다.
+
 
 student_tuple = [
     ('211101', '강이안', '010-123-1111'),
