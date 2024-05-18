@@ -16,6 +16,9 @@ class CalendarWindow(QMainWindow):
         self.layout = QVBoxLayout(self.centralWidget)
         self.calendar = QCalendarWidget(self)
         self.calendar.setGridVisible(True)
+        # 달력 범위 설정
+        self.calendar.setMinimumDate(QDate(2022, 1, 1))
+        self.calendar.setMaximumDate(QDate(2027, 12, 31))
         self.layout.addWidget(self.calendar)
         self.infoLabel = QLabel("제품을 입력해주세요", self)
         self.layout.addWidget(self.infoLabel)
@@ -32,6 +35,24 @@ class CalendarWindow(QMainWindow):
         self.setWindowTitle('식품 관리 캘린더')
         self.calendar.clicked.connect(self.calendarClicked)
 
+    def is_valid_date(self, date_str):
+        try:
+            date = QDate.fromString(date_str, "yyyy-MM-dd")
+            if not date.isValid():
+                return False
+            year = date.year()
+            month = date.month()
+            day = date.day()
+            if not (2022 <= year <= 2026):
+                return False
+            if not (1 <= month <= 12):
+                return False
+            if day > QDate(year, month, 1).daysInMonth():
+                return False
+            return True
+        except:
+            return False
+
     def addProductInfo(self):
         date = self.calendar.selectedDate()
         category, _ = QInputDialog.getText(self, "카테고리 입력하기", "카테고리를 입력하시오")
@@ -39,13 +60,13 @@ class CalendarWindow(QMainWindow):
         quantity, _ = QInputDialog.getInt(self, "개수 입력하기", "개수를 입력하시오 (숫자만 가능)")
         
         manufacture, _ = QInputDialog.getText(self, "제조일자 입력하기", "제조일자를 입력하시오 (YYYY-MM-DD)")
-        if not re.match(r'^\d{4}-\d{2}-\d{2}$', manufacture):
-            QMessageBox.warning(self, "입력 오류", "제조일자는 yyyy-mm-dd 형식으로 입력해주세요.")
+        if not re.match(r'^\d{4}-\d{2}-\d{2}$', manufacture) or not self.is_valid_date(manufacture):
+            QMessageBox.warning(self, "입력 오류", "제조일자는 2022-2026년 범위 내에서 yyyy-mm-dd 형식으로 입력해주세요.")
             return
         
         expiry, _ = QInputDialog.getText(self, "유통기한 입력하기", "유통기한을 입력하시오 (YYYY-MM-DD)")
-        if not re.match(r'^\d{4}-\d{2}-\d{2}$', expiry):
-            QMessageBox.warning(self, "입력 오류", "유통기한은 yyyy-mm-dd 형식으로 입력해주세요.")
+        if not re.match(r'^\d{4}-\d{2}-\d{2}$', expiry) or not self.is_valid_date(expiry):
+            QMessageBox.warning(self, "입력 오류", "유통기한은 2022-2027년 범위 내에서 yyyy-mm-dd 형식으로 입력해주세요.")
             return
         
         expiryDate = QDate.fromString(expiry, "yyyy-MM-dd")
@@ -97,7 +118,6 @@ class CalendarWindow(QMainWindow):
 
     def updateDateTextFormat(self, date):
         if date in self.productData:
-            count = len(self.productData[date])
             format = QTextCharFormat()
             format.setForeground(QColor('purple'))
             format.setFontWeight(QFont.Bold)
