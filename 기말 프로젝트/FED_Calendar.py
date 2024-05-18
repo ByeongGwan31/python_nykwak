@@ -58,16 +58,24 @@ class CalendarWindow(QMainWindow):
             input_dialog.setWindowFlags(input_dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)
             value, ok = input_dialog.getText(self, title, label, text=previous_value)
             if not ok:
-                return None  # User canceled
+                return None  # 사용자가 입력을 취소한 경우 None 반환
             if re.match(pattern, value) and self.is_valid_date(value):
                 return value
             QMessageBox.warning(self, "입력 오류", error_msg)
 
     def addProductInfo(self):
         date = self.calendar.selectedDate()
-        category, _ = QInputDialog.getText(self, "알림!", "카테고리를 입력하시오")
-        product, _ = QInputDialog.getText(self, "알림!", "물품명을 입력하시오")
-        quantity, _ = QInputDialog.getInt(self, "알림!", "개수를 입력하시오 (숫자만 가능)")
+        category, ok = QInputDialog.getText(self, "알림!", "카테고리를 입력하시오")
+        if not ok:
+            return  # 사용자가 입력을 취소한 경우 반환
+
+        product, ok = QInputDialog.getText(self, "알림!", "물품명을 입력하시오")
+        if not ok:
+            return  # 사용자가 입력을 취소한 경우 반환
+
+        quantity, ok = QInputDialog.getInt(self, "알림!", "개수를 입력하시오 (숫자만 가능)")
+        if not ok:
+            return  # 사용자가 입력을 취소한 경우 반환
 
         manufacture = self.get_input_with_validation(
             "알림!", 
@@ -93,8 +101,8 @@ class CalendarWindow(QMainWindow):
                 self.productData[expiryDate] = []
             found = False
             for item in self.productData[expiryDate]:
-                if item[:4] == (category, product, manufacture, expiry):
-                    item[3] += quantity
+                if item[:3] == (category, product, manufacture):
+                    item[2] += quantity
                     found = True
                     break
             if not found:
