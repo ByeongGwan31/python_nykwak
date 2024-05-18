@@ -16,7 +16,6 @@ class CalendarWindow(QMainWindow):
         self.layout = QVBoxLayout(self.centralWidget)
         self.calendar = QCalendarWidget(self)
         self.calendar.setGridVisible(True)
-        # 달력 범위 설정
         self.calendar.setMinimumDate(QDate(2022, 1, 1))
         self.calendar.setMaximumDate(QDate(2027, 12, 31))
         self.layout.addWidget(self.calendar)
@@ -43,7 +42,7 @@ class CalendarWindow(QMainWindow):
             year = date.year()
             month = date.month()
             day = date.day()
-            if not (2022 <= year <= 2026):
+            if not (2022 <= year <= 2027):
                 return False
             if not (1 <= month <= 12):
                 return False
@@ -53,31 +52,57 @@ class CalendarWindow(QMainWindow):
         except:
             return False
 
+    def get_input_with_validation(self, title, label, pattern, error_msg, previous_value=""):
+        while True:
+            input_dialog = QInputDialog(self)
+            input_dialog.setWindowFlags(input_dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)
+            value, ok = input_dialog.getText(self, title, label, text=previous_value)
+            if not ok:
+                return None  # User canceled
+            if re.match(pattern, value) and self.is_valid_date(value):
+                return value
+            QMessageBox.warning(self, "입력 오류", error_msg)
+
     def addProductInfo(self):
         date = self.calendar.selectedDate()
-        category, _ = QInputDialog.getText(self, "카테고리 입력하기", "카테고리를 입력하시오")
-        product, _ = QInputDialog.getText(self, "물품명 입력하기", "물품명을 입력하시오")
-        quantity, _ = QInputDialog.getInt(self, "개수 입력하기", "개수를 입력하시오 (숫자만 가능)")
-        
-        manufacture, _ = QInputDialog.getText(self, "제조일자 입력하기", "제조일자를 입력하시오 (YYYY-MM-DD)")
-        if not re.match(r'^\d{4}-\d{2}-\d{2}$', manufacture) or not self.is_valid_date(manufacture):
-            QMessageBox.warning(self, "입력 오류", "제조일자는 2022-2026년 범위 내에서 yyyy-mm-dd 형식으로 입력해주세요.")
+        category, _ = QInputDialog.getText(self, "알림!", "카테고리를 입력하시오")
+        product, _ = QInputDialog.getText(self, "알림!", "물품명을 입력하시오")
+        quantity, _ = QInputDialog.getInt(self, "알림!", "개수를 입력하시오 (숫자만 가능)")
+
+        manufacture = self.get_input_with_validation(
+            "알림!", 
+            "제조일자를 입력하시오 (YYYY-MM-DD)",
+            r'^\d{4}-\d{2}-\d{2}$',
+            "제조일자는 2022-2026년 범위 내에서 yyyy-mm-dd 형식으로 입력해주세요."
+        )
+        if not manufacture:
             return
-        
-        expiry, _ = QInputDialog.getText(self, "유통기한 입력하기", "유통기한을 입력하시오 (YYYY-MM-DD)")
-        if not re.match(r'^\d{4}-\d{2}-\d{2}$', expiry) or not self.is_valid_date(expiry):
-            QMessageBox.warning(self, "입력 오류", "유통기한은 2022-2027년 범위 내에서 yyyy-mm-dd 형식으로 입력해주세요.")
+
+        expiry = self.get_input_with_validation(
+            "알림!", 
+            "유통기한을 입력하시오 (YYYY-MM-DD)",
+            r'^\d{4}-\d{2}-\d{2}$',
+            "유통기한은 2022-2027년 범위 내에서 yyyy-mm-dd 형식으로 입력해주세요."
+        )
+        if not expiry:
             return
         
         expiryDate = QDate.fromString(expiry, "yyyy-MM-dd")
         if expiryDate.isValid():
             if expiryDate not in self.productData:
                 self.productData[expiryDate] = []
-            self.productData[expiryDate].append((category, product, quantity, manufacture))
+            found = False
+            for item in self.productData[expiryDate]:
+                if item[:4] == (category, product, manufacture, expiry):
+                    item[3] += quantity
+                    found = True
+                    break
+            if not found:
+                self.productData[expiryDate].append([category, product, quantity, manufacture])
             self.updateDateTextFormat(expiryDate)
             self.calendar.update()
         else:
-            QMessageBox.warning(self, "입력 오류", "유효한 유통기한을 입력해주세요.")
+            QMessageBox.warning(self, "알림!", "유효한 유통기한을 입력해주세요.")
 
     def deleteProductInfo(self):
         date = self.calendar.selectedDate()
@@ -135,7 +160,7 @@ class CalendarWindow(QMainWindow):
                 manufactureDate = QDate.fromString(manufacture, "yyyy-MM-dd").toString('yyyy년 MM월 dd일')
                 info_text += f"제조일자: {manufactureDate}<br/>"
                 info_text += f"{category} | <b style='color:black;'>{product}</b> <b style='color:blue;'>{quantity}개</b><br/>"
-            info_text += f"<b style='color:red;'>⚠️ 유통기한: {date.toString('MM월 dd일')}</b>"
+            info_text += f"<b style='color:red;'>⚠️ 유통기한: {date.toString('yyyy년 MM월 dd일')}</b>"
             self.infoLabel.setText(info_text)
             self.infoLabel.setTextFormat(Qt.RichText)
         else:
