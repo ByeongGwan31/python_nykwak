@@ -18,10 +18,10 @@
 
 # lab 9_2
 
-# t = "There's a reason some people are working to make it harder to vote, especially for people of color. It’s because when we show up, things change."
+t = "There's a reason some people are working to make it harder to vote, especially for people of color. It’s because when we show up, things change."
 
-# length = len(t.split(' '))
-# print('word count:', length)
+length = len(t.split(' '))
+print('word count:', length)
 
 # 도전문제 9.2
 # t = "It's Not The Right Time To Conduct Exams. MY DEMAND IN BOLD AND CAPITAL. NO EXAMS IN COVID!!!"
@@ -36,19 +36,19 @@
 
 
 # 기말고사 예제문제
-# import random
-# import string
+import random
+import string
 
-# src_str = string.ascii_letters + '0123456789'
+src_str = string.ascii_letters + '0123456789'
 
-# n_digits = int(input('몇 자리의 비밀번호를 원하십니까? : '))
+n_digits = int(input('몇 자리의 비밀번호를 원하십니까? : '))
 
-# otp = ''
-# for i in range(n_digits) :
-#     idx = random.randrange(len(src_str))
-#     otp += src_str[idx]
+otp = ''
+for i in range(n_digits) :
+    idx = random.randrange(len(src_str))
+    otp += src_str[idx]
 
-# print(otp)
+print(otp)
 
 
 # 9.7 정보를 한눈에 보여주는 워드 클라우드, 233쪽
