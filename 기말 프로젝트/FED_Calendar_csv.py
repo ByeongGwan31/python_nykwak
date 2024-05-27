@@ -2,9 +2,17 @@ import sys
 import re
 import os
 import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib import font_manager, rc
 from PyQt5.QtCore import QDate, Qt
 from PyQt5.QtGui import QFont, QColor, QTextCharFormat
 from PyQt5.QtWidgets import QApplication, QMainWindow, QCalendarWidget, QPushButton, QVBoxLayout, QWidget, QLabel, QInputDialog, QMessageBox, QDialog, QVBoxLayout, QTextEdit
+
+# 한글 폰트 설정
+font_path = "C:/Windows/Fonts/malgun.ttf"  # Windows의 맑은 고딕 폰트 경로
+font = font_manager.FontProperties(fname=font_path).get_name()
+rc('font', family=font)
 
 class CalendarWindow(QMainWindow):
     def __init__(self):
@@ -34,6 +42,9 @@ class CalendarWindow(QMainWindow):
         self.btnViewAll = QPushButton("모든 제품 조회", self)
         self.btnViewAll.clicked.connect(self.viewAllProducts)
         self.layout.addWidget(self.btnViewAll)
+        self.btnShowGraphs = QPushButton("그래프 보기", self)
+        self.btnShowGraphs.clicked.connect(self.showGraphs)
+        self.layout.addWidget(self.btnShowGraphs)
         self.setGeometry(300, 300, 1400, 800)
         self.setWindowTitle('식품 관리 캘린더')
         self.calendar.clicked.connect(self.calendarClicked)
@@ -172,18 +183,37 @@ class CalendarWindow(QMainWindow):
         dialog = QDialog(self)
         dialog.setWindowTitle("모든 유통기한 조회")
         layout = QVBoxLayout()
+    
+        titleLabel = QLabel("<h2>모든 제품 정보</h2>")
+        layout.addWidget(titleLabel)
+
         textEdit = QTextEdit()
         textEdit.setReadOnly(True)
-        products = []
+        products = {}
+
         for date, entries in sorted(self.productData.items()):
+            if date not in products:
+                products[date] = []
             for category, product, quantity, manufacture in entries:
                 manufactureDate = QDate.fromString(manufacture, "yyyy-MM-dd").toString('yyyy년 MM월 dd일')
-                products.append(f"제조일자: {manufactureDate} | 카테고리 : {category} | {product} {quantity}개 | {date.toString('yyyy년 MM월 dd일')}까지")
-        products.sort(key = lambda x: QDate.fromString(x.split(' | ')[-1].split('까지')[0], 'yyyy년 MM월 dd일'))
-        textEdit.setText("\n".join(products))
+                products[date].append(f"제조일자: {manufactureDate} | 카테고리: <b>{category}</b><br>"
+                                    f"제품명: <b>{product}</b> | 수량: <b style='color:blue;'>{quantity}</b> 개<br>")
+
+        product_texts = []
+        for date, entries in sorted(products.items()):
+            date_text = f"<b>유통기한: {date.toString('yyyy년 MM월 dd일')}</b><br>"
+            entries_text = "<br>".join(entries)
+            product_texts.append(f"{date_text}{entries_text}<br><br>")
+
+        textEdit.setHtml("<br>".join(product_texts))
         layout.addWidget(textEdit)
+
+        closeButton = QPushButton("닫기")
+        closeButton.clicked.connect(dialog.close)
+        layout.addWidget(closeButton)
+
         dialog.setLayout(layout)
-        dialog.resize(1000, 800)
+        dialog.resize(800, 600)
         dialog.exec_()
 
     def updateDateTextFormat(self, date):
@@ -210,6 +240,32 @@ class CalendarWindow(QMainWindow):
             self.infoLabel.setTextFormat(Qt.RichText)
         else:
             self.infoLabel.setText("이 날짜에 등록된 정보가 없습니다.")
+
+    def showGraphs(self):
+        df = pd.read_csv(self.csv_file_path, encoding='euc-kr')
+
+        # 카테고리별로 색상을 지정합니다.
+        categories = df['카테고리'].unique()
+        colors = plt.cm.tab20(np.linspace(0, 1, len(categories)))
+        color_map = {category: color for category, color in zip(categories, colors)}
+
+        fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(20, 10))
+
+        category_counts = df['카테고리'].value_counts()
+        category_counts.plot(kind='bar', color=[color_map[cat] for cat in category_counts.index], ax=axes[0], rot=45)
+        axes[0].set_title('카테고리별 제품 개수')
+        axes[0].set_xlabel('카테고리')
+        axes[0].set_ylabel('개수')
+
+        for category in categories:
+            category_data = df[df['카테고리'] == category]
+            axes[1].scatter([category] * len(category_data), category_data['개수'], color=color_map[category], label=category)
+        axes[1].set_title('카테고리별 유통기한 산점도')
+        axes[1].set_xlabel('카테고리')
+        axes[1].set_ylabel('개수')
+        axes[1].legend()
+
+        plt.show()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
